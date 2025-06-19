@@ -1,0 +1,6 @@
+log_level = 3
+vi_mode = false
+history = 10000
+datadir = "~/.eth-knife"
+rpc_url = "https://ethereum-rpc.publicnode.com"
+# rpc_url = "http://localhost:8545"

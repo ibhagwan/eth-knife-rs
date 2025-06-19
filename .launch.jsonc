@@ -1,0 +1,24 @@
+// nvim-dap configurations
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "[LLDB] Launch eth-knife console",
+      "program": "target/debug/eth-knife",
+      "args": ["console"],
+      "cwd": "${workspaceFolder}",
+      "stopOnEntry": false,
+    },
+    {
+      "type": "cppdbg",
+      "request": "launch",
+      "name": "[CPPDBG] Launch eth-knife console",
+      "program": "target/debug/eth-knife",
+      "args": ["console"],
+      "cwd": "${workspaceFolder}",
+      "stopOnEntry": false,
+    },
+  ],
+}

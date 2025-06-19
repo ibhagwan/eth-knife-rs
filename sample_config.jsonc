@@ -1,0 +1,7 @@
+{
+  "log_level": 5, // Trace
+  "vi_mode": true,
+  "history": 10000,
+  "datadir": "~/.eth-knife",
+  "rpc_url": "http://127.0.0.1:8545",
+}
