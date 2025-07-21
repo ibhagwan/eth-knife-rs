@@ -15,7 +15,7 @@ eyre = "0.6.12"
 # stable-eyre = "0.2.2"
 
 # Async
-tokio = { version = "1.45.1", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.46.1", features = ["macros", "rt-multi-thread"] }
 
 # Ethers / Http
 # alloy = { git = "https://github.com/alloy-rs/alloy.git", features = [
@@ -37,11 +37,11 @@ ethereum_serde_utils = "0.8.0"
 
 
 # Cli & config serialization
-clap = { version = "4.5.40", features = ["derive", "string"] }
+clap = { version = "4.5.41", features = ["derive", "string"] }
 clap-serde-derive = "0.2.1"
 serde = "1.0.219"
 serde_derive = "1.0.219"
-serde_json = "1.0.140"
+serde_json = "1.0.141"
 serde_jsonc = "1.0.108"
 toml = "0.8.23"
 jfs = "0.9"
