@@ -66,7 +66,7 @@ impl Logger {
         let drain = drain_from_log_level(log_level);
         let logger = slog::Logger::root(
             drain.clone(),
-            slog_o!("version" => env!("CARGO_PKG_VERSION")),
+            slog::o!("version" => env!("CARGO_PKG_VERSION")),
         );
         Logger {
             log_level: Mutex::new(4),
