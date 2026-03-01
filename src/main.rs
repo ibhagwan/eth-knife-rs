@@ -97,8 +97,8 @@ async fn main() -> Result<()> {
             // Console doesn't automatically connect
             // Attach attempts to connect to user requested node
             // Both start a REPL session
-            if let CliCmd::Attach { rpc_url } = &args.command {
-                if let Err(e) = cmd_dispatch(
+            if let CliCmd::Attach { rpc_url } = &args.command
+                && let Err(e) = cmd_dispatch(
                     &Cli::command(),
                     &CliCmd::Attach {
                         rpc_url: rpc_url.clone(),
@@ -108,7 +108,6 @@ async fn main() -> Result<()> {
                 {
                     error!("{:?}", e);
                 }
-            }
 
             // Now entering REPL mode
             global_set!(is_repl) = true;
@@ -123,8 +122,7 @@ async fn main() -> Result<()> {
                                 .datadir
                                 .clone()
                                 .unwrap()
-                                .join("history")
-                                .into(),
+                                .join("history"),
                         )
                         .unwrap(),
                     ))
@@ -169,7 +167,7 @@ async fn repl_cmd_dispatch(app: &clap::Command, cmd: &ReplCmd) -> Result<()> {
             globals::set_chain(&0_u64);
             Ok(())
         }
-        ReplCmd::CliCmd(cmd) => cmd_dispatch(app, &cmd).await,
+        ReplCmd::CliCmd(cmd) => cmd_dispatch(app, cmd).await,
         ReplCmd::Config(subcmd) => {
             match subcmd {
                 CmdConfig::Get {} => {
@@ -363,10 +361,7 @@ async fn cmd_dispatch(app: &clap::Command, cmd: &CliCmd) -> Result<()> {
                         DO NOT FORGET THIS PASSWORD as it will be the only way to unlock your \
                         account.\n",
                 )?;
-                let mnemonic_password = match mnemonic_password {
-                    None => None,
-                    Some(p) => Some(p.as_str()),
-                };
+                let mnemonic_password = mnemonic_password.as_ref().map(|p| p.as_str());
                 match mnemonic_file {
                     Some(mnemonic_file) => {
                         let _ = Account::from_mnemonic_file(
@@ -422,7 +417,7 @@ async fn cmd_dispatch(app: &clap::Command, cmd: &CliCmd) -> Result<()> {
                 printf!(
                     "{} {}",
                     "privkey:".white().bold(),
-                    hex::encode(&account.secret.lock().unwrap().clone())
+                    hex::encode(account.secret.lock().unwrap().clone())
                         .to_string()
                         .red()
                 );
@@ -455,7 +450,7 @@ async fn cmd_dispatch(app: &clap::Command, cmd: &CliCmd) -> Result<()> {
                 let _ = Account::select(address)?.try_unlock(password)?;
             }
             CmdAccount::Lock { address } => {
-                let _ = Account::select(address)?.lock();
+                Account::select(address)?.lock();
             }
             CmdAccount::Del { address } => {
                 let account = Account::select(address)?;
@@ -487,7 +482,7 @@ async fn cmd_dispatch(app: &clap::Command, cmd: &CliCmd) -> Result<()> {
                 AddressEntry::new(address, unwrap_or_prompt_for_addr_alias(name)?.as_str())?;
             }
             CmdAddress::SetName { address, name } => {
-                let _ = AddressEntry::select(&address)?
+                AddressEntry::select(address)?
                     .set_name(unwrap_or_prompt_for_addr_alias(name)?.as_str())?;
             }
             CmdAddress::Del { address } => {
@@ -500,7 +495,7 @@ async fn cmd_dispatch(app: &clap::Command, cmd: &CliCmd) -> Result<()> {
                 let chain_id = match chain_id {
                     Some(id) => match id {
                         0 => None,
-                        _ => Some(id.clone()),
+                        _ => Some(*id),
                     },
                     None => globals::chain_id(),
                 };
@@ -522,7 +517,7 @@ async fn cmd_dispatch(app: &clap::Command, cmd: &CliCmd) -> Result<()> {
                 let from = tx_envelope.clone().into_signed().recover_signer()?;
                 let account = match global!(accounts).get(from.to_string().as_str()) {
                     Some(account) => match account.is_unlocked() {
-                        true => Some(Arc::clone(&account)),
+                        true => Some(Arc::clone(account)),
                         false => {
                             println!(
                                 "{} {} {}",
@@ -697,7 +692,7 @@ fn build_prompt() -> DefaultPrompt {
                 )
                 .white()
                 .bold(),
-                format!("{}", client.rpc_url.clone()).green(),
+                client.rpc_url.clone().to_string().green(),
             )),
             ..DefaultPrompt::default()
         },
@@ -774,7 +769,7 @@ fn unwrap_or_select_addr(addr_or_index: &Option<String>) -> Result<Option<Addres
                                 println!("Unavailable for BLS pubkeys.");
                                 Ok(None)
                             }
-                            AccountIdentifier::Address { address } => Ok(Some(address.clone())),
+                            AccountIdentifier::Address { address } => Ok(Some(address)),
                         }
                     }
                     true => {

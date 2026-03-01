@@ -72,7 +72,7 @@ pub async fn consolidate(
                 .await?
                 .call(
                     TransactionRequest::default()
-                        .with_to(CONSOLIDATION_CONTRACR_ADDR.clone())
+                        .with_to(*CONSOLIDATION_CONTRACR_ADDR)
                         .with_input([]),
                 )
                 .await?;
@@ -100,7 +100,7 @@ pub async fn consolidate(
     input.extend(target.to_bytes());
     let tx = rpc::gen_tx_request(
         account.address()?,
-        CONSOLIDATION_CONTRACR_ADDR.clone(),
+        *CONSOLIDATION_CONTRACR_ADDR,
         tx_args,
     )
     .await?
@@ -150,7 +150,7 @@ pub async fn withdrawal(
                 .await?
                 .call(
                     TransactionRequest::default()
-                        .with_to(WITHDRAWAL_CONTRACR_ADDR.clone())
+                        .with_to(*WITHDRAWAL_CONTRACR_ADDR)
                         .with_input([]),
                 )
                 .await?;
@@ -187,7 +187,7 @@ pub async fn withdrawal(
     input.extend(amount_bytes);
     let tx = rpc::gen_tx_request(
         account.address()?,
-        WITHDRAWAL_CONTRACR_ADDR.clone(),
+        *WITHDRAWAL_CONTRACR_ADDR,
         tx_args,
     )
     .await?
@@ -286,7 +286,7 @@ pub async fn deposit(
             deposit_data.pubkey.into(),
             deposit_data.withdrawal_credentials.into(),
             deposit_data.signature.into(),
-            deposit_data.tree_hash_root().into(),
+            deposit_data.tree_hash_root(),
         )
         .into_transaction_request()
         .input

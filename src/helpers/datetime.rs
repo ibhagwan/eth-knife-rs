@@ -8,7 +8,7 @@ pub trait Timezone {
 
 impl Timezone for OffsetDateTime {
     fn to_localtime(&self) -> OffsetDateTime {
-        let mut dt = self.clone();
+        let mut dt = *self;
         let tz_offset_sec = chrono::Local::now().offset().local_minus_utc();
         if let Ok(offset) = UtcOffset::from_whole_seconds(tz_offset_sec) {
             dt = dt.to_offset(offset);

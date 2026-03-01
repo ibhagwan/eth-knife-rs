@@ -32,7 +32,7 @@ pub enum AccountIdentifier {
 impl std::fmt::Display for AccountIdentifier {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            AccountIdentifier::Address { address } => write!(f, "{}", address.to_string()),
+            AccountIdentifier::Address { address } => write!(f, "{}", address),
             AccountIdentifier::PublicKey { pubkey } => write!(f, "{}", pubkey),
         }
     }
@@ -76,7 +76,7 @@ impl Account {
         if existing.is_some() && existing.clone().unwrap().keypath != account.keypath {
             warn!(
                 "Duplicate Keystore for {}, ignoring.\nOld: {}\nNew: {}",
-                ident.to_string(),
+                ident,
                 existing.unwrap().keypath.display(),
                 account.keypath.display()
             );
@@ -89,7 +89,7 @@ impl Account {
 
     pub fn get(ident: &AccountIdentifier) -> Option<Arc<Account>> {
         match global!(accounts).get(ident.to_string().as_str()) {
-            Some(account) => Some(Arc::clone(&account)),
+            Some(account) => Some(Arc::clone(account)),
             None => None,
         }
     }
@@ -110,9 +110,9 @@ impl Account {
         let mut rng = rand::thread_rng();
         let uuid = match ident {
             AccountIdentifier::PublicKey { pubkey: _ } => {
-                eth_keystore::v4::encrypt_key(dir.clone(), &mut rng, &secret, password, filename)?
+                eth_keystore::v4::encrypt_key(dir.clone(), &mut rng, secret, password, filename)?
             }
-            _ => eth_keystore::v3::encrypt_key(dir.clone(), &mut rng, &secret, password, filename)?,
+            _ => eth_keystore::v3::encrypt_key(dir.clone(), &mut rng, secret, password, filename)?,
         };
 
         let keypath = match filename {
@@ -215,16 +215,16 @@ impl Account {
             Ok(idx) => {
                 let mut sorted: Vec<Arc<Account>> = global!(accounts)
                     .iter()
-                    .map(|(_addr, account)| Arc::clone(&account))
+                    .map(|(_addr, account)| Arc::clone(account))
                     .collect();
-                sorted.sort_by(|a, b| a.created.cmp(&b.created));
+                sorted.sort_by_key(|a| a.created);
                 match idx > 0 && sorted.len() >= idx {
                     true => Ok(Arc::clone(&sorted[idx - 1])),
                     _ => Err(eyre!("Invalid index.")),
                 }
             }
             _ => match global!(accounts).get(addr_or_index.as_str()) {
-                Some(account) => Ok(Arc::clone(&account)),
+                Some(account) => Ok(Arc::clone(account)),
                 _ => Err(eyre!("Invalid account address or index.")),
             },
         }
@@ -267,7 +267,7 @@ impl Account {
     pub fn address(&self) -> Result<Address> {
         match &self.ident {
             AccountIdentifier::PublicKey { pubkey: _ } => Err(eyre!("Wrong keystore type!")),
-            AccountIdentifier::Address { address } => Ok(address.clone()),
+            AccountIdentifier::Address { address } => Ok(*address),
         }
     }
 
@@ -325,7 +325,7 @@ impl Account {
     }
 
     pub fn unlock(&self, password: &str) -> Result<&Self> {
-        let key = eth_keystore::decrypt_key(&self.keypath, &password.to_string())?;
+        let key = eth_keystore::decrypt_key(&self.keypath, password)?;
         // debug!("secret: {}", hex::encode(&key));
         let mut secret = self.secret.lock().unwrap();
         *secret = key;
@@ -338,7 +338,7 @@ impl Account {
             }
             AccountIdentifier::Address { address } => {
                 let signer = LocalSigner::<SigningKey>::from_slice(&secret)?;
-                debug!("unlocked address: {}", signer.address().to_string());
+                debug!("unlocked address: {}", signer.address());
                 assert_eq!(
                     address.to_string(),
                     signer.address().to_string(),
@@ -355,7 +355,7 @@ impl Account {
     }
 
     pub fn is_unlocked(&self) -> bool {
-        self.secret.lock().unwrap().len() > 0
+        !self.secret.lock().unwrap().is_empty()
     }
 
     pub fn set_password(&self, password: &str) -> Result<()> {
@@ -369,7 +369,7 @@ impl Account {
             self.keypath.parent().unwrap().to_path_buf(),
             self.keypath.file_name().unwrap().to_str(),
         )?;
-        print!("Password updated for account {} ({}).\n", name, self.ident);
+        println!("Password updated for account {} ({}).", name, self.ident);
         Ok(())
     }
 
@@ -524,7 +524,7 @@ pub fn load_keystore(datadir: PathBuf) -> Result<()> {
             "Reading keystore {}",
             &keypath.as_ref().unwrap().path().display()
         );
-        let file = std::fs::File::open(&keypath.as_ref().unwrap().path())?;
+        let file = std::fs::File::open(keypath.as_ref().unwrap().path())?;
         let json = serde_json::from_reader::<_, serde_json::Value>(&file)?;
         let created: Option<u64> = json.get("created").and_then(|value| value.as_u64());
         // id (geth, store v3) or uuid (deposit cli, v4) must exist
@@ -576,36 +576,30 @@ fn _print_accounts(with_details: bool) {
     let mut i = 0;
     let mut sorted: Vec<Arc<Account>> = global!(accounts)
         .iter()
-        .map(|(_addr, account)| Arc::clone(&account))
+        .map(|(_addr, account)| Arc::clone(account))
         .collect();
-    sorted.sort_by(|a, b| a.created.cmp(&b.created));
+    sorted.sort_by_key(|a| a.created);
     sorted.iter().for_each(|account| {
         let name = account.name.lock().unwrap();
-        i = i + 1;
+        i += 1;
         println!(
             "{:<3} {:<14} {} [{},{}]{}",
             format!("{}.", i).green().bold(),
-            format!(
-                "{}",
-                match name.len() {
+            (match name.len() {
                     0 => "<unnamed>",
                     _ => name.as_str(),
-                }
-            )
+                }).to_string()
             .white()
             .bold(),
             format!("{}", account.ident).blue(),
-            format!(
-                "{}",
-                match &account.ident {
+            (match &account.ident {
                     AccountIdentifier::PublicKey { pubkey: _ } => "bls",
                     AccountIdentifier::Address { address: _ } => "key",
-                }
-            )
+                }).to_string()
             .yellow(),
             match account.is_unlocked() {
-                true => format!("UNLOCKED").green().bold(),
-                false => format!("LOCKED").red(),
+                true => "UNLOCKED".to_string().green().bold(),
+                false => "LOCKED".to_string().red(),
             },
             match with_details {
                 true => format!(

@@ -17,7 +17,7 @@ impl Clone for AddressEntry {
     fn clone(&self) -> Self {
         AddressEntry {
             created: self.created,
-            addr: self.addr.clone(),
+            addr: self.addr,
             name: Mutex::new(self.name.lock().unwrap().to_string()),
         }
     }
@@ -42,24 +42,21 @@ pub fn load(dbfile: PathBuf) -> Result<()> {
 pub fn print(start_idx: Option<usize>) -> Result<()> {
     let mut i = start_idx.unwrap_or(0);
     let all = &global!(addr_db).all::<AddressEntry>()?;
-    let mut sorted: Vec<&AddressEntry> = all.into_iter().map(|(_addr, entry)| entry).collect();
-    sorted.sort_by(|a, b| a.created.cmp(&b.created));
+    let mut sorted: Vec<&AddressEntry> = all.values().collect();
+    sorted.sort_by_key(|a| a.created);
     sorted.iter().for_each(|entry| {
         let name = entry.name.lock().unwrap();
-        i = i + 1;
+        i += 1;
         println!(
             "{:<3} {:<14} {}",
             format!("{}.", i).green().bold(),
-            format!(
-                "{}",
-                match name.len() {
+            (match name.len() {
                     0 => "<unnamed>",
                     _ => name.as_str(),
-                }
-            )
+                }).to_string()
             .white()
             .bold(),
-            format!("{}", &entry.addr.to_string()).blue(),
+            entry.addr.to_string().to_string().blue(),
         );
     });
     Ok(())
@@ -109,8 +106,8 @@ impl AddressEntry {
             Ok(idx) => {
                 let all = global!(addr_db).all::<AddressEntry>().unwrap();
                 let mut sorted: Vec<&AddressEntry> =
-                    (&all).into_iter().map(|(_addr, entry)| entry).collect();
-                sorted.sort_by(|a, b| a.created.cmp(&b.created));
+                    all.values().collect();
+                sorted.sort_by_key(|a| a.created);
                 match idx > 0 && sorted.len() >= idx {
                     true => Ok(Arc::new(sorted[idx - 1].clone())),
                     _ => Err(eyre!("Invalid index.")),

@@ -43,8 +43,8 @@ fn new_drain(level: Level) -> Fuse<Mutex<Fuse<LevelFilter<CompactFormat<TermDeco
         .fuse();
     // Uncomment for async logging
     //let drain = slog_async::Async::new(drain).build().fuse();
-    let drain = Mutex::new(drain).fuse();
-    drain
+    
+    Mutex::new(drain).fuse()
 }
 
 fn drain_from_log_level(log_level: u8) -> AtomicSwitch {

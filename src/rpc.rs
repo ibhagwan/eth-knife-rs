@@ -48,7 +48,7 @@ impl Client {
             bail!("must specify a valid --http-url")
         };
 
-        if global!(client).rpc_url == url.to_string() {
+        if global!(client).rpc_url == *url {
             return Ok(Arc::clone(&global!(client)));
         };
 
@@ -104,7 +104,7 @@ impl Client {
                 .wrap_err_with(|| format!("Connect failed to '{}'", self.rpc_url))?,
         ));
 
-        let provider = DynProvider::clone(&prov.as_ref().unwrap());
+        let provider = DynProvider::clone(prov.as_ref().unwrap());
 
         // Get chain ID and height
         let chain_id = provider.get_chain_id().await?;
@@ -123,7 +123,7 @@ impl Client {
 
         debug!(
             "Connected to {} {}:{} {}:{}",
-            format!("{}", global!(chain).name).green().bold(),
+            global!(chain).name.to_string().green().bold(),
             "chainId".white().bold(),
             format!("{:?}", chain_id).blue(),
             "height".white().bold(),
@@ -406,7 +406,7 @@ pub async fn send_tx(
     // Prompt for fees and sign the tx, do not send account
     // to `send_tx_signed` as we already prompted for fees
     let tx_envelope = match tx_args.max_priority.is_some() {
-        true => account.sign_tx_and_decode(&tx).await?,
+        true => account.sign_tx_and_decode(tx).await?,
         false => prompt_for_fees(account, tx).await?,
     };
     send_tx_signed(tx_envelope, None, tx_args).await

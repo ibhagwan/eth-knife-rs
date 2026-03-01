@@ -35,7 +35,7 @@ impl Clone for TxEntry {
             timestamp: self.timestamp,
             chain_id: self.chain_id,
             tx: self.tx.clone(),
-            tx_hash: self.tx_hash.clone(),
+            tx_hash: self.tx_hash,
         }
     }
 }
@@ -57,10 +57,7 @@ pub fn load(dbfile: PathBuf) -> Result<()> {
 
 pub fn sprintf_tx(tx: &TransactionRequest, align: Option<usize>) -> String {
     let mut pretty_tx = String::default();
-    let align = match align {
-        Some(n) => n,
-        _ => 16,
-    };
+    let align = align.unwrap_or(16);
     let to = match tx.to.unwrap() {
         TxKind::Create => "CREATE".to_string(),
         TxKind::Call(address) => address.to_string(),
@@ -127,16 +124,16 @@ pub fn print_tx(tx: &TransactionRequest) {
 pub fn print_entry(entry: &TxEntry, idx: Option<usize>) -> Result<()> {
     let align = 16;
     let mut pretty_tx = match idx {
-        Some(idx) => String::from(format!(
+        Some(idx) => format!(
             "{:<3} {}",
             format!("{}.", idx).green().bold(),
-            format!("{}", &entry.tx_hash.to_string()).red(),
-        )),
-        _ => String::from(format!(
+            entry.tx_hash.to_string().to_string().red(),
+        ),
+        _ => format!(
             "    {:align$}{}",
             "tx_hash:".white().bold(),
-            format!("{}", &entry.tx_hash.to_string()).red(),
-        )),
+            entry.tx_hash.to_string().to_string().red(),
+        ),
     };
     pretty_tx.push_str(
         format!(
@@ -159,14 +156,14 @@ pub fn print_entry(entry: &TxEntry, idx: Option<usize>) -> Result<()> {
 pub fn print(chain_id: Option<u64>, start_idx: Option<usize>) -> Result<()> {
     let mut i = start_idx.unwrap_or(0);
     let all = &global!(tx_db).all::<TxEntry>()?;
-    let mut sorted: Vec<&TxEntry> = all.into_iter().map(|(_hash, entry)| entry).collect();
-    sorted.sort_by(|a, b| a.timestamp.cmp(&b.timestamp));
+    let mut sorted: Vec<&TxEntry> = all.values().collect();
+    sorted.sort_by_key(|a| a.timestamp);
     sorted.iter().for_each(|entry| {
         if chain_id.is_some() && chain_id.unwrap() != entry.chain_id {
             return;
         }
-        i = i + 1;
-        let _ = print_entry(&entry, Some(i));
+        i += 1;
+        let _ = print_entry(entry, Some(i));
     });
     Ok(())
 }
@@ -178,7 +175,7 @@ pub fn del(tx_hash: &str) -> Result<()> {
             global!(tx_db).delete(tx_hash.to_string().as_str())?;
             println!(
                 "transaction {} tx_hash delted successfully.",
-                tx_hash.to_string()
+                tx_hash
             );
             Ok(())
         }
@@ -197,7 +194,7 @@ pub fn write_eip2718(tx: &TxEnvelope, filepath: &String) -> Result<()> {
         .read(true)
         .truncate(true)
         .open(filepath)?;
-    file.write_all(hex::encode(&data).as_str().as_bytes())?;
+    file.write_all(hex::encode(&data).as_bytes())?;
     Ok(())
 }
 
@@ -220,7 +217,7 @@ impl TxEntry {
                 .as_secs(),
             chain_id: tx.chain_id().expect("tx without chain_id"),
             tx: tx.clone(),
-            tx_hash: tx_hash.clone(),
+            tx_hash: *tx_hash,
         });
 
         if global!(tx_db)
@@ -229,7 +226,7 @@ impl TxEntry {
         {
             println!(
                 "transaction {} already exists in the DB, updated tx data.",
-                tx_hash.to_string()
+                tx_hash
             );
         }
 
@@ -251,15 +248,13 @@ impl TxEntry {
             Ok(idx) => {
                 let chain_id = *global!(client).chain_id.lock().unwrap();
                 let all = global!(tx_db).all::<TxEntry>().unwrap();
-                let mut sorted: Vec<&TxEntry> = (&all)
-                    .into_iter()
-                    .map(|(_hash, entry)| entry)
+                let mut sorted: Vec<&TxEntry> = all.values()
                     .filter(|entry| match chain_id {
                         0 => true,
                         id => entry.chain_id == id,
                     })
                     .collect();
-                sorted.sort_by(|a, b| a.timestamp.cmp(&b.timestamp));
+                sorted.sort_by_key(|a| a.timestamp);
                 match idx > 0 && sorted.len() >= idx {
                     true => Ok(Arc::new(sorted[idx - 1].clone())),
                     _ => Err(eyre!("Invalid index.")),

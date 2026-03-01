@@ -60,7 +60,7 @@ pub fn print_block_next_base_fee(block: &Block, next_base_fee: &u64) {
         &block.header.base_fee_per_gas.unwrap(),
         &block.header.gas_limit,
         &block.header.gas_used,
-        &next_base_fee,
+        next_base_fee,
     )
 }
 
@@ -120,17 +120,17 @@ pub fn calc_next_base_fee(base_fee: &u64, gas_limit: &u64, gas_used: &u64) -> u6
         }
         delta
     };
-    let next_base_fee = match gas_used > gas_target {
+    
+    match gas_used > gas_target {
         true => base_fee + calc_delta(gas_used, gas_target, true),
         false => base_fee - calc_delta(gas_target, gas_used, false),
-    };
-    next_base_fee
+    }
 }
 
 pub fn calc_and_store_base_fee(latest_block: &Block) -> (u64, u64) {
     let base_fee = latest_block.header.base_fee_per_gas.unwrap();
     // Verify our previous calculation is accurate
-    let prev_next_base_fee = global!(next_base_fee).clone();
+    let prev_next_base_fee = *global!(next_base_fee);
     if prev_next_base_fee != 0 && prev_next_base_fee != base_fee {
         warn!(
             "Block {:?} unexepcted base fee [current:{:?}, expected:{:?}]",
