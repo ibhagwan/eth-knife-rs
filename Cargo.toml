@@ -15,11 +15,11 @@ eyre = "0.6.12"
 # stable-eyre = "0.2.2"
 
 # Async
-tokio = { version = "1.49.0", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.51.0", features = ["macros", "rt-multi-thread"] }
 
 # Ethers / Http
 # alloy = { git = "https://github.com/alloy-rs/alloy.git", features = [
-alloy = { version = "1.7", features = [
+alloy = { version = "1.8", features = [
     "default",
     "signer-mnemonic",
     "signer-keystore",
@@ -37,13 +37,13 @@ ethereum_serde_utils = "0.8.0"
 
 
 # Cli & config serialization
-clap = { version = "4.5.60", features = ["derive", "string"] }
+clap = { version = "4.6.0", features = ["derive", "string"] }
 clap-serde-derive = "0.2.1"
 serde = "1.0.228"
 serde_derive = "1.0.228"
 serde_json = "1.0.149"
 serde_jsonc = "1.0.108"
-toml = "1.0.3"
+toml = "1.1.2"
 jfs = "0.9"
 # clap-repl = { version = "0.3.2", features = ["async"] }
 clap-repl = { git = "https://github.com/HKalbasi/clap-repl.git", features = ["async"] }
@@ -61,7 +61,7 @@ colored = "3.1.1"
 # Misc
 time = "0.3.47"
 chrono = "0.4.44"
-once_cell = "1.21.3"
+once_cell = "1.21.4"
 shellexpand = "3.1.2"
 termion = "4.0.6"
 # Using re-exported version from alloy
