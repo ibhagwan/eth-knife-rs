@@ -8,7 +8,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use alloy::{
     consensus::{SignableTransaction, Signed, TxEnvelope, TypedTransaction},
     eips::eip2718::Decodable2718,
-    network::TransactionBuilder,
+    network::NetworkTransactionBuilder,
     network::TxSigner,
     primitives::{Address, hex},
     rpc::types::TransactionRequest,
@@ -586,16 +586,18 @@ fn _print_accounts(with_details: bool) {
             "{:<3} {:<14} {} [{},{}]{}",
             format!("{}.", i).green().bold(),
             (match name.len() {
-                    0 => "<unnamed>",
-                    _ => name.as_str(),
-                }).to_string()
+                0 => "<unnamed>",
+                _ => name.as_str(),
+            })
+            .to_string()
             .white()
             .bold(),
             format!("{}", account.ident).blue(),
             (match &account.ident {
-                    AccountIdentifier::PublicKey { pubkey: _ } => "bls",
-                    AccountIdentifier::Address { address: _ } => "key",
-                }).to_string()
+                AccountIdentifier::PublicKey { pubkey: _ } => "bls",
+                AccountIdentifier::Address { address: _ } => "key",
+            })
+            .to_string()
             .yellow(),
             match account.is_unlocked() {
                 true => "UNLOCKED".to_string().green().bold(),

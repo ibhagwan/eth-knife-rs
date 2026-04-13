@@ -1,6 +1,6 @@
 use slog::Drain;
-use slog_term::{CompactFormat, TermDecorator};
 use slog_atomic::{AtomicSwitch, AtomicSwitchCtrl};
+use slog_term::{CompactFormat, TermDecorator};
 use std::io;
 use std::sync::Mutex;
 use time::OffsetDateTime;
@@ -43,7 +43,7 @@ fn new_drain(level: Level) -> Fuse<Mutex<Fuse<LevelFilter<CompactFormat<TermDeco
         .fuse();
     // Uncomment for async logging
     //let drain = slog_async::Async::new(drain).build().fuse();
-    
+
     Mutex::new(drain).fuse()
 }
 

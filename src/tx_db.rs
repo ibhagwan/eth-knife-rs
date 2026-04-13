@@ -173,10 +173,7 @@ pub fn del(tx_hash: &str) -> Result<()> {
     match entry {
         Ok(_) => {
             global!(tx_db).delete(tx_hash.to_string().as_str())?;
-            println!(
-                "transaction {} tx_hash delted successfully.",
-                tx_hash
-            );
+            println!("transaction {} tx_hash delted successfully.", tx_hash);
             Ok(())
         }
         _ => Err(eyre!("transaction {} does not exist in the DB.", tx_hash)),
@@ -248,7 +245,8 @@ impl TxEntry {
             Ok(idx) => {
                 let chain_id = *global!(client).chain_id.lock().unwrap();
                 let all = global!(tx_db).all::<TxEntry>().unwrap();
-                let mut sorted: Vec<&TxEntry> = all.values()
+                let mut sorted: Vec<&TxEntry> = all
+                    .values()
                     .filter(|entry| match chain_id {
                         0 => true,
                         id => entry.chain_id == id,

@@ -105,9 +105,9 @@ async fn main() -> Result<()> {
                     },
                 )
                 .await
-                {
-                    error!("{:?}", e);
-                }
+            {
+                error!("{:?}", e);
+            }
 
             // Now entering REPL mode
             global_set!(is_repl) = true;
@@ -118,11 +118,7 @@ async fn main() -> Result<()> {
                     reed.with_history(Box::new(
                         FileBackedHistory::with_file(
                             10000,
-                            global!(config)
-                                .datadir
-                                .clone()
-                                .unwrap()
-                                .join("history"),
+                            global!(config).datadir.clone().unwrap().join("history"),
                         )
                         .unwrap(),
                     ))

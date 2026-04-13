@@ -15,11 +15,11 @@ eyre = "0.6.12"
 # stable-eyre = "0.2.2"
 
 # Async
-tokio = { version = "1.51.0", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.51.1", features = ["macros", "rt-multi-thread"] }
 
 # Ethers / Http
 # alloy = { git = "https://github.com/alloy-rs/alloy.git", features = [
-alloy = { version = "1.8", features = [
+alloy = { version = "2", features = [
     "default",
     "signer-mnemonic",
     "signer-keystore",

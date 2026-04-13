@@ -25,7 +25,13 @@ macro_rules! global {
     };
     // Implementation detail macros for `Option<Struct>` types
     (struct $x:ident) => {
-        $crate::globals::G.$x.lock().as_mut().unwrap().as_mut().unwrap()
+        $crate::globals::G
+            .$x
+            .lock()
+            .as_mut()
+            .unwrap()
+            .as_mut()
+            .unwrap()
     };
     // We want our map types to be mutable so we can add/remove items
     (as_mut $x:ident) => {

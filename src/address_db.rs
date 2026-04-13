@@ -51,9 +51,10 @@ pub fn print(start_idx: Option<usize>) -> Result<()> {
             "{:<3} {:<14} {}",
             format!("{}.", i).green().bold(),
             (match name.len() {
-                    0 => "<unnamed>",
-                    _ => name.as_str(),
-                }).to_string()
+                0 => "<unnamed>",
+                _ => name.as_str(),
+            })
+            .to_string()
             .white()
             .bold(),
             entry.addr.to_string().to_string().blue(),
@@ -105,8 +106,7 @@ impl AddressEntry {
         match addr_or_index.parse::<usize>() {
             Ok(idx) => {
                 let all = global!(addr_db).all::<AddressEntry>().unwrap();
-                let mut sorted: Vec<&AddressEntry> =
-                    all.values().collect();
+                let mut sorted: Vec<&AddressEntry> = all.values().collect();
                 sorted.sort_by_key(|a| a.created);
                 match idx > 0 && sorted.len() >= idx {
                     true => Ok(Arc::new(sorted[idx - 1].clone())),

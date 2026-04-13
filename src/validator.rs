@@ -98,14 +98,10 @@ pub async fn consolidate(
 
     let mut input: Vec<u8> = source.to_bytes().into();
     input.extend(target.to_bytes());
-    let tx = rpc::gen_tx_request(
-        account.address()?,
-        *CONSOLIDATION_CONTRACR_ADDR,
-        tx_args,
-    )
-    .await?
-    .with_value(U256::from(fee))
-    .with_input(input);
+    let tx = rpc::gen_tx_request(account.address()?, *CONSOLIDATION_CONTRACR_ADDR, tx_args)
+        .await?
+        .with_value(U256::from(fee))
+        .with_input(input);
     trace!("{:#?}", tx);
 
     let gas_limit = match tx_args.offline {
@@ -185,14 +181,10 @@ pub async fn withdrawal(
     );
     let mut input: Vec<u8> = pubkey.to_bytes().into();
     input.extend(amount_bytes);
-    let tx = rpc::gen_tx_request(
-        account.address()?,
-        *WITHDRAWAL_CONTRACR_ADDR,
-        tx_args,
-    )
-    .await?
-    .with_value(U256::from(fee))
-    .with_input(input);
+    let tx = rpc::gen_tx_request(account.address()?, *WITHDRAWAL_CONTRACR_ADDR, tx_args)
+        .await?
+        .with_value(U256::from(fee))
+        .with_input(input);
     trace!("{:#?}", tx);
 
     let gas_limit = match tx_args.offline {

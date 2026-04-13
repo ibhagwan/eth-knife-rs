@@ -120,7 +120,7 @@ pub fn calc_next_base_fee(base_fee: &u64, gas_limit: &u64, gas_used: &u64) -> u6
         }
         delta
     };
-    
+
     match gas_used > gas_target {
         true => base_fee + calc_delta(gas_used, gas_target, true),
         false => base_fee - calc_delta(gas_target, gas_used, false),
