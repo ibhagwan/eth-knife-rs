@@ -29,7 +29,7 @@ url = { version = "2.5.8", default-features = false }
 rand = { version = "0.8.7", default-features = false, features = ["getrandom"] }
 # rand = { version = "0.9.0", default-features = false, features = ["os_rng", "thread_rng"] }
 eth-keystore = { git = "https://github.com/ibhagwan/eth-keystore-rs", branch = "v4", features = ["geth-compat"] }
-blst = "0.3.16"
+blst = "0.3.17"
 # For DepositData merkle root calculation
 tree_hash = "0.12.1"
 tree_hash_derive = "0.12.1"
@@ -46,7 +46,8 @@ serde_jsonc = "1.0.108"
 toml = "1.1.3"
 jfs = "0.9"
 # clap-repl = { version = "0.3.2", features = ["async"] }
-clap-repl = { git = "https://github.com/HKalbasi/clap-repl.git", features = ["async"] }
+# clap-repl = { git = "https://github.com/HKalbasi/clap-repl.git", features = ["async"] }
+clap-repl = { git = "https://github.com/ibhagwan/clap-repl.git", features = ["async"] }
 
 # Logging
 log = "0.4.33"
