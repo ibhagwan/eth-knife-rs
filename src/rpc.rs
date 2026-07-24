@@ -95,18 +95,22 @@ impl Client {
     }
 
     async fn _connect(&self) -> Result<&Self> {
-        // Create a provider with the HTTP transport.
-        let mut prov = self.provider.lock().unwrap();
-        *prov = Some(DynProvider::new(
+        // Create a provider with the HTTP transport (built outside the lock
+        // so the MutexGuard isn't held across `.await`).
+        let provider = DynProvider::new(
             ProviderBuilder::new()
                 .connect(self.rpc_url.as_str())
                 .await
                 .wrap_err_with(|| format!("Connect failed to '{}'", self.rpc_url))?,
-        ));
+        );
+        // Short critical section: store the provider. Lock is released
+        // immediately after — no awaits while held.
+        {
+            let mut prov = self.provider.lock().unwrap();
+            *prov = Some(DynProvider::clone(&provider));
+        }
 
-        let provider = DynProvider::clone(prov.as_ref().unwrap());
-
-        // Get chain ID and height
+        // Get chain ID and height (no lock held)
         let chain_id = provider.get_chain_id().await?;
         let height = provider.get_block_number().await?;
 
