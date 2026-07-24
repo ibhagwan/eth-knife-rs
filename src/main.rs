@@ -211,13 +211,13 @@ async fn cmd_dispatch(app: &clap::Command, cmd: &CliCmd) -> Result<()> {
             println!("version: {}", ver);
         }
         CliCmd::Network(subcmd) => match subcmd {
-            CmdNetwork::Id {} => match global!(client).get_chain_id().await? {
+            CmdNetwork::Id {} => match global!(arc client).get_chain_id().await? {
                 0 => printf!("Not connected"),
                 id => printf!("Chain id: {}", id.to_string().blue()),
             },
             CmdNetwork::Balance { address } => {
                 if let Some(addr) = unwrap_or_select_addr(address)? {
-                    let balance = global!(client).balance(&addr).await?;
+                    let balance = global!(arc client).balance(&addr).await?;
                     printf!(
                         "{} {}: {} {}",
                         "Balance of".white().bold(),
@@ -229,7 +229,7 @@ async fn cmd_dispatch(app: &clap::Command, cmd: &CliCmd) -> Result<()> {
             }
             CmdNetwork::Nonce { address } => {
                 if let Some(addr) = unwrap_or_select_addr(address)? {
-                    let nonce = global!(client).nonce(&addr).await?;
+                    let nonce = global!(arc client).nonce(&addr).await?;
                     printf!(
                         "{} {}: {}",
                         "Nonce for".white().bold(),
@@ -239,7 +239,7 @@ async fn cmd_dispatch(app: &clap::Command, cmd: &CliCmd) -> Result<()> {
                 }
             }
             CmdNetwork::NextBaseFee {} => {
-                let latest_block = global!(client).block().await?;
+                let latest_block = global!(arc client).block().await?;
                 let next_block_base_fee = latest_block
                     .header
                     .next_block_base_fee(BaseFeeParams::ethereum())
@@ -646,7 +646,7 @@ async fn cmd_dispatch(app: &clap::Command, cmd: &CliCmd) -> Result<()> {
             }
 
             // Connect and verify chain ID is modified in our global object
-            let chain_id: u64 = global!(client).get_chain_id().await?;
+            let chain_id: u64 = global!(arc client).get_chain_id().await?;
             assert_eq!(
                 chain_id,
                 *global!(client).chain_id.lock().unwrap(),

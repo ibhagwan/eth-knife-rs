@@ -26,6 +26,15 @@ pub struct GlobalData {
     pub accounts: Mutex<BTreeMap<String, Arc<Account>>>,
 }
 
+/// Helper for the `global!(arc $x)` macro: clones the `Arc<T>` out of a
+/// `Mutex<Arc<T>>` and drops the lock immediately. The lock is never held
+/// across an `.await` point — defeating `clippy::await_holding_lock` while
+/// keeping `std::sync::Mutex` everywhere else.
+#[inline]
+pub fn clone_arc<T: Clone>(m: &Mutex<T>) -> T {
+    m.lock().unwrap().clone()
+}
+
 #[derive(Debug, Clone)]
 pub struct ChainData {
     pub id: u64,

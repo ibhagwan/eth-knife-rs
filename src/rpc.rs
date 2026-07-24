@@ -194,7 +194,7 @@ pub async fn gen_tx_request(
     };
     let nonce = match tx_args.nonce {
         Some(nonce) => nonce,
-        None => global!(client).nonce(&from).await?,
+        None => global!(arc client).nonce(&from).await?,
     };
     let estimation = match tx_args.max_priority.is_some() {
         true => Eip1559Estimation {
@@ -206,7 +206,7 @@ pub async fn gen_tx_request(
             )?
             .try_into()?,
         },
-        false => global!(client).estimate_fees().await?,
+        false => global!(arc client).estimate_fees().await?,
     };
 
     let tx = TransactionRequest::default()
@@ -226,13 +226,13 @@ pub async fn gen_tx_request(
 }
 
 pub async fn estimate_fees() -> Result<(Eip1559Estimation, u64)> {
-    let latest_block = global!(client).block().await?;
+    let latest_block = global!(arc client).block().await?;
     let base_fee = latest_block.header.base_fee_per_gas.unwrap();
     let next_block_base_fee = latest_block
         .header
         .next_block_base_fee(BaseFeeParams::ethereum())
         .unwrap();
-    let estimation = global!(client).estimate_fees().await?;
+    let estimation = global!(arc client).estimate_fees().await?;
     let next_base_plus_priority = estimation.max_priority_fee_per_gas + next_block_base_fee as u128;
     let align = 26;
     let mut pretty_fee = String::default();
@@ -434,7 +434,7 @@ pub async fn send_tx_signed(
     }?;
 
     let simulate_tx = async |tx: &TransactionRequest| -> Result<Bytes> {
-        global!(client)
+        global!(arc client)
             .provider()
             .await?
             .call(tx.clone())
@@ -490,7 +490,7 @@ pub async fn send_tx_signed(
 
     // Isolate global client mutex lock
     let send_tx = async |tx_envelope| -> Result<PendingTransactionBuilder<Ethereum>> {
-        Ok(global!(client)
+        Ok(global!(arc client)
             .send_tx_envelope(tx_envelope)
             .await?
             // NOTE: This is the builder config for the later `register()`

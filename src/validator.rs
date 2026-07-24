@@ -65,7 +65,7 @@ pub async fn consolidate(
         false => {
             // Query the consolidation contract for the fee
             // let provider = global!(client).provider().await?;
-            let out = global!(client)
+            let out = global!(arc client)
                 .provider()
                 .await?
                 .call(
@@ -105,7 +105,7 @@ pub async fn consolidate(
     let gas_limit = match tx_args.offline {
         true => tx_args.gas_limit.unwrap(),
         false => {
-            global!(client)
+            global!(arc client)
                 .provider()
                 .await?
                 .estimate_gas(tx.clone())
@@ -138,7 +138,7 @@ pub async fn withdrawal(
         true => max_fee,
         false => {
             // Query the consolidation contract for the fee
-            let out = global!(client)
+            let out = global!(arc client)
                 .provider()
                 .await?
                 .call(
@@ -187,7 +187,7 @@ pub async fn withdrawal(
     let gas_limit = match tx_args.offline {
         true => tx_args.gas_limit.unwrap(),
         false => {
-            global!(client)
+            global!(arc client)
                 .provider()
                 .await?
                 .estimate_gas(tx.clone())
@@ -247,7 +247,7 @@ pub async fn deposit(
     debug!("Pubkey: {}", hex::encode(pubkey).to_string().blue());
 
     // Create our contract instqnce
-    let provider = global!(client).provider().await?;
+    let provider = global!(arc client).provider().await?;
     let contract = IDepositContract::new(deposit_contract, provider.clone());
 
     // amount arg is fractional eth, withdrawal contract
@@ -290,7 +290,7 @@ pub async fn deposit(
 
     let gas_limit = match tx_args.offline {
         true => tx_args.gas_limit.unwrap(),
-        false => global!(client)
+        false => global!(arc client)
             .provider()
             .await?
             .estimate_gas(tx.clone())

@@ -17,11 +17,14 @@ macro_rules! parse_address {
 
 #[macro_export]
 macro_rules! global {
-    // (accounts) => {
-    //     global!(as_mut accounts)
-    // };
     ($x:ident) => {
         $crate::globals::G.$x.lock().unwrap()
+    };
+    // Yields a clone of an `Arc<T>` stored in a global `Mutex<Arc<T>>`,
+    // releasing the lock immediately. Use this when the returned value
+    // will be held across an `.await` point (avoids `await_holding_lock`).
+    (arc $x:ident) => {
+        $crate::globals::clone_arc(&$crate::globals::G.$x)
     };
     // Implementation detail macros for `Option<Struct>` types
     (struct $x:ident) => {
