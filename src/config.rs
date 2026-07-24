@@ -627,7 +627,7 @@ where
     }
 }
 
-fn read_toml_config<T, P: AsRef<std::path::Path>>(path: P) -> Result<<T as ClapSerde>::Opt>
+fn read_toml_config<T, P>(path: P) -> Result<<T as ClapSerde>::Opt>
 where
     P: AsRef<std::path::Path> + std::fmt::Debug + Copy,
     T: ClapSerde + serde::de::DeserializeOwned,
@@ -636,11 +636,10 @@ where
     Ok(toml::from_str(&content)?)
 }
 
-fn read_json_config<T: ClapSerde, P: AsRef<std::path::Path>>(
-    path: P,
-) -> Result<<T as ClapSerde>::Opt>
+fn read_json_config<T, P>(path: P) -> Result<<T as ClapSerde>::Opt>
 where
     P: AsRef<std::path::Path> + std::fmt::Debug + Copy,
+    T: ClapSerde,
 {
     let f = File::open(path).wrap_err_with(|| format!("{:?}", path))?;
     let json_cfg = serde_json::from_reader::<_, <T as ClapSerde>::Opt>(BufReader::new(f))?;
@@ -648,11 +647,10 @@ where
     //Ok(T::from(json_cfg))
 }
 
-fn read_jsonc_config<T: ClapSerde, P: AsRef<std::path::Path>>(
-    path: P,
-) -> Result<<T as ClapSerde>::Opt>
+fn read_jsonc_config<T, P>(path: P) -> Result<<T as ClapSerde>::Opt>
 where
     P: AsRef<std::path::Path> + std::fmt::Debug + Copy,
+    T: ClapSerde,
 {
     let f = File::open(path).wrap_err_with(|| format!("{:?}", path))?;
     let jsonc_cfg = serde_jsonc::from_reader::<_, <T as ClapSerde>::Opt>(BufReader::new(f))?;

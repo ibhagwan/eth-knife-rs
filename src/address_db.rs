@@ -32,9 +32,11 @@ pub fn load(dbfile: PathBuf) -> Result<()> {
     }
 
     //let dbfile = datadir.join("addr_db.json");
-    let mut cfg = jfs::Config::default();
-    cfg.single = true;
-    cfg.pretty = true;
+    let cfg = jfs::Config {
+        single: true,
+        pretty: true,
+        ..Default::default()
+    };
     *global!(addr_db) = jfs::Store::new_with_cfg(&dbfile, cfg)?;
     Ok(())
 }

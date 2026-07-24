@@ -10,7 +10,7 @@ use alloy::{
     eips::eip1559::BaseFeeParams,
     network::TransactionBuilder,
     primitives::{
-        Address, hex,
+        Address, U256, hex,
         utils::{Unit, format_ether, format_units, parse_ether, parse_units},
     },
 };
@@ -561,7 +561,7 @@ async fn cmd_dispatch(app: &clap::Command, cmd: &CliCmd) -> Result<()> {
                     let wei = parse_units(&amount.to_string(), "ether")?;
                     let tx = rpc::gen_tx_request(from, to, tx_args)
                         .await?
-                        .with_value(wei.try_into()?);
+                        .with_value(<U256 as From<_>>::from(wei));
                     let tx = match tx_args.gas_limit {
                         Some(_) => tx, // Already set by `rpc::gen_tx_request`
                         None => tx.with_gas_limit(21_000),

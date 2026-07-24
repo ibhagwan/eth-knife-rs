@@ -48,9 +48,11 @@ pub fn load(dbfile: PathBuf) -> Result<()> {
         return Ok(());
     }
 
-    let mut cfg = jfs::Config::default();
-    cfg.single = true;
-    cfg.pretty = true;
+    let cfg = jfs::Config {
+        single: true,
+        pretty: true,
+        ..Default::default()
+    };
     *global!(tx_db) = jfs::Store::new_with_cfg(&dbfile, cfg)?;
     Ok(())
 }
@@ -83,15 +85,13 @@ pub fn sprintf_tx(tx: &TransactionRequest, align: Option<usize>) -> String {
         format!("{} eth", format_units(tx.value.unwrap(), "ether").unwrap()),
         yellow
     );
-    if tx.input.input.is_some() && !tx.input.input.as_ref().unwrap().is_empty() {
-        push_field!(
-            "data",
-            format!("{}", hex::encode(tx.input.input.as_ref().unwrap())),
-            white
-        );
+    if let Some(input) = tx.input.input.as_ref()
+        && !input.is_empty()
+    {
+        push_field!("data", format!("{}", hex::encode(input)), white);
     }
-    if tx.gas.is_some() {
-        push_field!("gas_limit", tx.gas.unwrap(), green);
+    if let Some(gas) = tx.gas {
+        push_field!("gas_limit", gas, green);
     }
     push_field!(
         "fees",

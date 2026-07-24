@@ -1,7 +1,7 @@
 use colored::*;
 use eyre::{Result, bail, eyre};
 use log::*;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -72,15 +72,19 @@ impl Account {
         });
 
         // Check for existing accounts for same address
-        let existing = Account::get(ident);
-        if existing.is_some() && existing.clone().unwrap().keypath != account.keypath {
-            warn!(
-                "Duplicate Keystore for {}, ignoring.\nOld: {}\nNew: {}",
-                ident,
-                existing.unwrap().keypath.display(),
-                account.keypath.display()
-            );
-        } else {
+        let exists = match Account::get(ident) {
+            Some(existing) if existing.keypath != account.keypath => {
+                warn!(
+                    "Duplicate Keystore for {}, ignoring.\nOld: {}\nNew: {}",
+                    ident,
+                    existing.keypath.display(),
+                    account.keypath.display()
+                );
+                true
+            }
+            _ => false,
+        };
+        if !exists {
             // New account or updated account from :set_password
             global!(accounts).insert(ident.to_string(), Arc::clone(&account));
         }
@@ -122,9 +126,9 @@ impl Account {
 
         // Do we have an existing account for this address already?
         let existing = Account::get(ident);
-        let updating = match existing.clone() {
-            None => false,
-            Some(existing) => existing.keypath == keypath,
+        let (updating, existing_created) = match &existing {
+            None => (false, None),
+            Some(e) => (e.keypath == keypath, Some(e.created)),
         };
 
         let account = Account::new(None, uuid.as_str(), name, ident, secret, keypath.clone());
@@ -135,7 +139,7 @@ impl Account {
             vec![(
                 "created",
                 match updating {
-                    true => existing.clone().unwrap().created,
+                    true => existing_created.unwrap(),
                     false => account.created,
                 },
             )],
@@ -402,7 +406,7 @@ impl Account {
     }
 
     pub fn from_private_key(
-        private_key: &String,
+        private_key: &str,
         name: &str,
         password: &str,
         dir: PathBuf,
@@ -412,7 +416,7 @@ impl Account {
     }
 
     pub fn from_keyfile(
-        keyfile: &PathBuf,
+        keyfile: &Path,
         name: &str,
         password: &str,
         dir: PathBuf,
@@ -422,8 +426,9 @@ impl Account {
         Account::from_signer(signer, name, password, dir)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn from_mnemonic_file(
-        mnemonic_file: &PathBuf,
+        mnemonic_file: &Path,
         mnemonic_password: Option<&str>,
         index: u32,
         derivation_path: &str,
@@ -434,7 +439,7 @@ impl Account {
     ) -> Result<Arc<Self>> {
         let filepath = shellexpand::full(
             mnemonic_file
-                .clone()
+                .to_path_buf()
                 .into_os_string()
                 .into_string()
                 .unwrap()
@@ -454,8 +459,9 @@ impl Account {
         )
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn from_mnemonic(
-        mnemonic_phrase: &String,
+        mnemonic_phrase: &str,
         mnemonic_password: Option<&str>,
         index: u32,
         derivation_path: &str,
@@ -522,7 +528,7 @@ pub fn load_keystore(datadir: PathBuf) -> Result<()> {
     for keypath in keystore_files {
         trace!(
             "Reading keystore {}",
-            &keypath.as_ref().unwrap().path().display()
+            keypath.as_ref().unwrap().path().display()
         );
         let file = std::fs::File::open(keypath.as_ref().unwrap().path())?;
         let json = serde_json::from_reader::<_, serde_json::Value>(&file)?;
@@ -607,7 +613,7 @@ fn _print_accounts(with_details: bool) {
                 true => format!(
                     "\n    {:<14} {}",
                     "Keystore:".bold(),
-                    &account.keypath.display().to_string().white()
+                    account.keypath.display().to_string().white()
                 ),
                 false => "".to_string(),
             }

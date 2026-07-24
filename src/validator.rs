@@ -31,7 +31,7 @@ static WITHDRAWAL_CONTRACR_ADDR: Lazy<Address> =
 // public keys are equal (in place validator upgrade, 0x1 -> 0x2)
 pub async fn comppound(
     account: Arc<Account>,
-    pubkey: &String,
+    pubkey: &str,
     max_fee: u128,
     tx_args: &TxCommonArgs,
 ) -> Result<Option<TxHash>> {
@@ -40,8 +40,8 @@ pub async fn comppound(
 
 pub async fn consolidate(
     account: Arc<Account>,
-    source: &String,
-    target: &String,
+    source: &str,
+    target: &str,
     max_fee: u128,
     tx_args: &TxCommonArgs,
 ) -> Result<Option<TxHash>> {
@@ -49,10 +49,8 @@ pub async fn consolidate(
         blst::min_pk::PublicKey::from_bytes(hex::decode(pubkey)?.as_slice())
             .map_err(|e| eyre!("{:#?}", e))
     };
-    let source =
-        parse_pubkey(source.as_str()).wrap_err_with(|| "source public key parsing failed")?;
-    let target =
-        parse_pubkey(target.as_str()).wrap_err_with(|| "target public key parsing failed")?;
+    let source = parse_pubkey(source).wrap_err_with(|| "source public key parsing failed")?;
+    let target = parse_pubkey(target).wrap_err_with(|| "target public key parsing failed")?;
     debug!(
         "Source: {}",
         hex::encode(source.to_bytes()).to_string().green()
@@ -121,7 +119,7 @@ pub async fn consolidate(
 
 pub async fn withdrawal(
     account: Arc<Account>,
-    pubkey: &String,
+    pubkey: &str,
     amount: f64,
     max_fee: u128,
     tx_args: &TxCommonArgs,
@@ -130,8 +128,7 @@ pub async fn withdrawal(
         blst::min_pk::PublicKey::from_bytes(hex::decode(pubkey)?.as_slice())
             .map_err(|e| eyre!("{:#?}", e))
     };
-    let pubkey =
-        parse_pubkey(pubkey.as_str()).wrap_err_with(|| "source public key parsing failed")?;
+    let pubkey = parse_pubkey(pubkey).wrap_err_with(|| "source public key parsing failed")?;
     debug!(
         "Pubkey: {}",
         hex::encode(pubkey.to_bytes()).to_string().blue()
@@ -204,7 +201,7 @@ pub async fn withdrawal(
 
 pub async fn deposit(
     account: Arc<Account>,
-    pubkey: &String,
+    pubkey: &str,
     amount: f64,
     tx_args: &TxCommonArgs,
 ) -> Result<Option<TxHash>> {
@@ -243,7 +240,7 @@ pub async fn deposit(
         blst::min_pk::PublicKey::from_bytes(hex::decode(pubkey)?.as_slice())
             .map_err(|e| eyre!("{:#?}", e))
     };
-    let pubkey: [u8; 48] = parse_pubkey(pubkey.as_str())
+    let pubkey: [u8; 48] = parse_pubkey(pubkey)
         .wrap_err_with(|| "source public key parsing failed")?
         .to_bytes()[..]
         .try_into()?;
