@@ -88,7 +88,7 @@ pub fn sprintf_tx(tx: &TransactionRequest, align: Option<usize>) -> String {
     if let Some(input) = tx.input.input.as_ref()
         && !input.is_empty()
     {
-        push_field!("data", format!("{}", hex::encode(input)), white);
+        push_field!("data", hex::encode(input).to_string(), white);
     }
     if let Some(gas) = tx.gas {
         push_field!("gas_limit", gas, green);
