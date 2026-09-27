@@ -1,6 +1,6 @@
 use clap_repl::reedline::{
     self, DefaultPrompt, DefaultPromptSegment, EditMode, Reedline, ReedlineEvent, Signal, Vi,
-    default_vi_insert_keybindings, default_vi_normal_keybindings,
+    default_vi_insert_keybindings, default_vi_normal_keybindings, default_vi_visual_keybindings,
 };
 use colored::*;
 use eyre::{Result, eyre};
@@ -100,5 +100,9 @@ pub fn edit_mode_vi() -> Box<dyn EditMode> {
             ReedlineEvent::MenuNext,
         ]),
     );
-    Box::new(Vi::new(insert_keybinds, default_vi_normal_keybindings()))
+    Box::new(Vi::new(
+        insert_keybinds,
+        default_vi_normal_keybindings(),
+        default_vi_visual_keybindings(),
+    ))
 }
