@@ -16,7 +16,7 @@ use alloy::{
         k256::ecdsa::{SigningKey, VerifyingKey},
         local::{
             LocalSigner, MnemonicBuilder, PrivateKeySigner,
-            coins_bip39::{English, Mnemonic},
+            coins_bip39::{English, Mnemonic, WordCount},
         },
     },
 };
@@ -46,6 +46,12 @@ pub struct Account {
     pub ident: AccountIdentifier,
     pub secret: Mutex<Vec<u8>>,
     pub keypath: PathBuf,
+}
+
+/// Generates a random mnemonic of the requested word count.
+pub fn random_mnemonic(word_count: u8) -> Result<Mnemonic<English>> {
+    let word_count = WordCount::try_from(usize::from(word_count))?;
+    Ok(Mnemonic::random(word_count, &mut rand::rng()))
 }
 
 impl Account {
@@ -111,7 +117,7 @@ impl Account {
 
         // We use our own fork of eth-keystore for "geth-compat" which adds an address field
         // to the json as well as v4 / BLS12-138 keystore support
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let uuid = match ident {
             AccountIdentifier::PublicKey { pubkey: _ } => {
                 eth_keystore::v4::encrypt_key(dir.clone(), &mut rng, secret, password, filename)?
@@ -195,14 +201,13 @@ impl Account {
         password: &str,
         dir: PathBuf,
     ) -> Result<Arc<Account>> {
-        let mut rng = rand::thread_rng();
-
         // Child key at derivation path: m/44'/60'/0'/0/{index}.
-        let phrase = Mnemonic::<English>::new_with_count(&mut rng, usize::from(*word_count))?;
-        let mnemonic = MnemonicBuilder::<English>::default().phrase(phrase.to_phrase());
+        let phrase = random_mnemonic(*word_count)?;
+        let phrase_str = phrase.to_phrase();
+        let mnemonic = MnemonicBuilder::<English>::default().phrase(phrase_str.as_str());
         let signer: PrivateKeySigner = mnemonic.index(0u32).unwrap().build().unwrap();
 
-        println!("Mnemonic: {}", phrase.to_phrase());
+        println!("Mnemonic: {}", phrase_str.as_str());
 
         Account::from_signer(signer, name, password, dir)
     }
@@ -475,7 +480,8 @@ impl Account {
                 debug!("Using derivation path m/12381/3600/{}/0/0", index);
                 let mnemonic = Mnemonic::<English>::new_from_phrase(mnemonic_phrase.trim())?;
                 let seed = mnemonic.to_seed(mnemonic_password)?;
-                let bls_master_sk = blst::min_pk::SecretKey::derive_master_eip2333(&seed).unwrap();
+                let bls_master_sk =
+                    blst::min_pk::SecretKey::derive_master_eip2333(seed.as_ref()).unwrap();
                 let bls_sk = bls_master_sk
                     .derive_child_eip2333(12381)
                     .derive_child_eip2333(3600)

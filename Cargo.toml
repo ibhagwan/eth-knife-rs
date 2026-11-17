@@ -26,8 +26,7 @@ alloy = { version = "2", features = [
     "k256" # recover_signer
 ] }
 url = { version = "2.5.8", default-features = false }
-rand = { version = "0.8.8", default-features = false, features = ["getrandom"] }
-# rand = { version = "0.9.0", default-features = false, features = ["os_rng", "thread_rng"] }
+rand = { version = "0.10", default-features = false, features = ["thread_rng"] }
 eth-keystore = { git = "https://github.com/ibhagwan/eth-keystore-rs", branch = "v4", features = ["geth-compat"] }
 blst = "0.3.17"
 # For DepositData merkle root calculation

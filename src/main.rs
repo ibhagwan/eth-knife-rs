@@ -288,13 +288,10 @@ async fn cmd_dispatch(app: &clap::Command, cmd: &CliCmd) -> Result<()> {
                 )?;
             }
             CmdAccount::NewMnemonic { word_count } => {
-                use alloy::signers::local::coins_bip39::{English, Mnemonic};
                 // Workaround clap value_parser accepting only string values
                 let word_count = word_count.parse::<u8>().unwrap();
-                let mut rng = rand::thread_rng();
-                let mnemonic =
-                    Mnemonic::<English>::new_with_count(&mut rng, usize::from(word_count))?;
-                printf!("{}", mnemonic.to_phrase().magenta());
+                let mnemonic = account::random_mnemonic(word_count)?;
+                printf!("{}", mnemonic.to_phrase().as_str().magenta());
             }
             CmdAccount::ImportPrivkey {
                 keyfile,
