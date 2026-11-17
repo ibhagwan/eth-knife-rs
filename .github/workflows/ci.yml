@@ -42,18 +42,15 @@ jobs:
       - name: cargo fmt
         run: cargo fmt --all -- --check
 
-  # test:
-  #   name: Test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v7
-  #
-  #     - name: Install protoc
-  #       run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
-  #
-  #     - uses: dtolnay/rust-toolchain@stable
-  #
-  #     - uses: Swatinem/rust-cache@v2
-  #
-  #     - name: cargo test (lib)
-  #       run: cargo test --lib
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: cargo test
+        run: cargo test --all-targets

@@ -630,7 +630,7 @@ fn _print_accounts(with_details: bool) {
 #[cfg(test)]
 mod tests {
     use alloy::{
-        primitives::hex,
+        primitives::{Address, hex},
         signers::local::{
             MnemonicBuilder,
             coins_bip39::{English, Mnemonic},
@@ -678,11 +678,16 @@ mod tests {
         let signer0 = mnemonic.clone().index(0u32).unwrap().build().unwrap();
         let signer1 = mnemonic.clone().index(1u32).unwrap().build().unwrap();
 
-        //assert_eq!(
-        //    signer0.address().to_string(),
-        //    hex::encode(priv_key0.public().address()),
-        //    "Address0 mismatch"
-        //);
+        assert_eq!(
+            signer0.address(),
+            Address::from_slice(priv_key0.public().address()),
+            "Address0 mismatch"
+        );
+        assert_eq!(
+            signer1.address(),
+            Address::from_slice(priv_key1.public().address()),
+            "Address1 mismatch"
+        );
 
         assert_eq!(
             hex::encode(
